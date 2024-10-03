@@ -21,13 +21,15 @@ export async function handler() {
     return
   }
 
-  const API_KEY = await logger.prompt('Please give ur API key', {
-    type: 'text',
-  })
+  let API_KEY = process.env.DOC_GEN_API_KEY
 
-  // logger.log(`Hello, ${green(bold(username))}!`)
+  if (API_KEY == undefined) {
+    API_KEY = await logger.prompt('Please give ur API key', {
+      type: 'text',
+    })
+  }
 
-  logger.log("")
+  logger.log('')
   logger.log(`Generating Docs. API_KEY=${green(bold(API_KEY))}`)
 
   await logger.prompt('This is gonna cost a lot of credits.', {
@@ -45,10 +47,10 @@ export async function handler() {
       },
     ],
   })
-  
-  logger.log("")
+
+  logger.log('')
   logger.log('Please wait...')
 
-  logger.log("")
-  logger.log(`${green(bold("DOCS GENERATED in {path}"))}, Ciao!`)
+  logger.log('')
+  logger.log(`${green(bold('DOCS GENERATED in {path}'))}, Ciao!`)
 }
