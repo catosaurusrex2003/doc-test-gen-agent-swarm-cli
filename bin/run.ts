@@ -6,11 +6,7 @@ import { bgBlue, bold, red } from 'picocolors'
 config()
 
 const run = yargs(process.argv.slice(2))
-run.usage(
-  bgBlue(
-    `Welcome to the CLI application powered by ${bold(red('cli-typescript-starter'))}!`,
-  ),
-)
+run.usage(bgBlue(`Welcome to the CLI application powered by ${bold(red('cli-typescript-starter'))}!`))
 for (const command of commands) {
   run.command(command as CommandModule)
 }
