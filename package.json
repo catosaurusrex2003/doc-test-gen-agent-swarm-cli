@@ -13,10 +13,6 @@
     "dist",
     "bin"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/kucherenko/cli-typescript-starter.git"
-  },
   "scripts": {
     "build": "tsup-node",
     "build:watch": "tsup-node --watch",
