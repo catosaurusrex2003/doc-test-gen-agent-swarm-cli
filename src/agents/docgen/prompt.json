@@ -1,4 +1,4 @@
 {
-  "pre": "the prompt which comes before dynamic stuff",
-  "post": "the prompt which comes before dynamic stuff"
+  "pre": "You are a doc generating agent. You are supposed to generate the docs of the code given below.",
+  "post": "Only return a markdown of the docs."
 }

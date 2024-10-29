@@ -23,3 +23,15 @@ export const generateTreeDiagrahm = (dirPath: string, indent: string = ''): void
     console.error(`Error reading ${dirPath}: ${err}`)
   }
 }
+
+
+export const deleteDirectory = (dirPath: string): void => {
+  fs.rm(dirPath, { recursive: true, force: true }, (err) => {
+      if (err) {
+          console.error(`Error deleting ${dirPath}: ${err.message}`);
+      } else {
+          console.log(`Directory ${dirPath} deleted successfully.`);
+      }
+  });
+}
+

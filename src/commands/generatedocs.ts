@@ -2,6 +2,9 @@ import { Argv } from 'yargs'
 import fs from 'fs'
 import { logger, newLine } from '../logger'
 import { DirectoryTree } from '../core/DirectoryTree'
+import { docGenController } from '../controllers/docgen.controller'
+import { green, red, bold, cyan } from 'picocolors'
+import { deleteDirectory } from '../utils/dirIo'
 
 interface GenerateDocsArgv {
   path: string
@@ -23,17 +26,6 @@ export function builder(yargs: Argv<GenerateDocsArgv>): Argv {
 }
 
 export async function handler() {
-  // const { path } = argv
-  // console.log('path ', path)
-
-  // const ready = await logger.prompt(green(`Do you want to generate Docs?`), {
-  //   type: 'confirm',
-  // })
-  // if (!ready) {
-  //   logger.log(`No problem Bye.`)
-  //   return
-  // }
-
   const dirPath =
     (await logger.prompt('path to ur project', {
       type: 'text',
@@ -46,17 +38,32 @@ export async function handler() {
     process.exit(1)
   }
 
-  // generateTreeDiagrahm(dirPath)
-
+  // THISSSS
   const dirTree = new DirectoryTree(dirPath)
   dirTree.generateTree()
-  dirTree.display()
+  newLine(1)
+  dirTree.displayTree()
+  // dirTree.displayTreeDSA()
+  newLine(1)
 
-  // const dirInfo = fs.readdirSync(path)
-  // console.log(dirInfo)
+  const confirmGenerate = await logger.prompt(
+    `Do you want to generate docs for the above files ? \n` +
+    `  previously generated documentation at path ${cyan(dirTree.outDir)} will be deleted \n` +
+    red(bold('  MAKE SURE NODEMODULES IS NOT THERE.')),
+    {
+      type: 'confirm',
+    },
+  )
+  if (!confirmGenerate) {
+    logger.log(`No problem Bye.`)
+    return
+  }
 
-  // logger.log('')
-  // logger.log(`Generating Docs. API_KEY=${green(bold(API_KEY))}`)
+  deleteDirectory(dirTree.outDir)
+
+  logger.log(`Generating Docs. API_KEY=${green(bold(process.env.GEMINI_API_KEY))}`)
+
+  docGenController(dirTree)
 
   // await logger.prompt('This is gonna cost a lot of credits.', {
   //   type: 'select',

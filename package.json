@@ -69,6 +69,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "consola": "^3.2.3",
     "dotenv": "^16.4.5",
     "picocolors": "^1.1.0",
