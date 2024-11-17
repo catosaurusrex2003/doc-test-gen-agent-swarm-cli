@@ -10,6 +10,7 @@ interface GenerateDocsArgv {
   path: string
 }
 
+
 export const command = 'generatedocs'
 export const describe = 'Generates the documentation of the codebase'
 export const aliases = ['g']
