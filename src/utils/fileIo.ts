@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import {cyan} from "picocolors"
+import { cyan } from 'picocolors'
 
 export const createMarkdownFile = (content: string, destinationPath: string): void => {
   const dir = path.dirname(destinationPath)
@@ -30,4 +30,9 @@ export const readFile = (filePath: string): Promise<string> => {
   })
 }
 
-
+export const readPackageJsonMain = async (filePath: string): Promise<string> => {
+  // reads a package.json and returns the "main"
+  const content = await readFile(filePath)
+  const obj = JSON.parse(content)
+  return obj.main as string
+}

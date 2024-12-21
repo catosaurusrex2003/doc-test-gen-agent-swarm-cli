@@ -24,14 +24,11 @@ export const generateTreeDiagrahm = (dirPath: string, indent: string = ''): void
   }
 }
 
-
 export const deleteDirectory = (dirPath: string): void => {
-  fs.rm(dirPath, { recursive: true, force: true }, (err) => {
-      if (err) {
-          console.error(`Error deleting ${dirPath}: ${err.message}`);
-      } else {
-          console.log(`Directory ${dirPath} deleted successfully.`);
-      }
-  });
+  try {
+    fs.rmSync(dirPath, { recursive: true, force: true })
+    console.log(`Directory ${dirPath} deleted successfully.`)
+  } catch (err) {
+    console.error(`Error deleting ${dirPath}: ${err}`)
+  }
 }
-
