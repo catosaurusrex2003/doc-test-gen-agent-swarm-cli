@@ -5,11 +5,14 @@ import { DirectoryTree } from '../core/DirectoryTree'
 import { docGenController } from '../controllers/docgen.controller'
 import { green, red, bold, cyan } from 'picocolors'
 import { deleteDirectory } from '../utils/dirIo'
+import { readPackageJsonMain } from '../utils/fileIo'
+import { DependencyGraph } from '../core/DependencyGraph'
+import path from 'path'
+import { DependencyTree } from '../core/DependencyTree'
 
 interface GenerateDocsArgv {
   path: string
 }
-
 
 export const command = 'generatedocs'
 export const describe = 'Generates the documentation of the codebase'
@@ -40,17 +43,28 @@ export async function handler() {
   }
 
   // THISSSS
-  const dirTree = new DirectoryTree(dirPath)
-  dirTree.generateTree()
+  const entryFilePath = await readPackageJsonMain(dirPath + '/package.json')
+
+  // const depTree = new DependencyTree(path.join(dirPath, 'src', entryFilePath))
+  // depTree.generateTree()
+  // newLine(1)
+  // depTree.displayTree()
+  
+  const depGraph = new DependencyGraph(path.join(dirPath, 'src', entryFilePath))
+  await depGraph.generateGraph()
   newLine(1)
-  dirTree.displayTree()
+  depGraph.displayGraph()
+  
+  
+  
+  
   // dirTree.displayTreeDSA()
   newLine(1)
 
   const confirmGenerate = await logger.prompt(
     `Do you want to generate docs for the above files ? \n` +
-    `  previously generated documentation at path ${cyan(dirTree.outDir)} will be deleted \n` +
-    red(bold('  MAKE SURE NODEMODULES IS NOT THERE.')),
+      `  previously generated documentation at path ${cyan(depGraph.outDir)} will be deleted \n` +
+      red(bold('  MAKE SURE NODEMODULES IS NOT THERE.')),
     {
       type: 'confirm',
     },
@@ -60,11 +74,11 @@ export async function handler() {
     return
   }
 
-  deleteDirectory(dirTree.outDir)
+  deleteDirectory(depGraph.outDir)
 
   logger.log(`Generating Docs. API_KEY=${green(bold(process.env.GEMINI_API_KEY))}`)
 
-  docGenController(dirTree)
+  docGenController(depGraph)
 
   // await logger.prompt('This is gonna cost a lot of credits.', {
   //   type: 'select',
@@ -81,7 +95,7 @@ export async function handler() {
   //     },
   //   ],
   // })
-
+  
   // logger.log('')
   // logger.log('Please wait...')
 

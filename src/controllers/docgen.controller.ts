@@ -1,19 +1,20 @@
+import { DependencyGraph } from 'src/core/DependencyGraph'
 import { docGenAgent } from '../agents/docgen/docgen'
-import { DirectoryTree } from '../core/DirectoryTree'
 import { createMarkdownFile, readFile } from '../utils/fileIo'
-import {blue} from "picocolors"
+import { DependencyTree } from '../core/DependencyTree'
 
-export const docGenController = (dirTree: DirectoryTree) => {
-  dirTree.traverseTreeWithCallback(dirTree.root, async (node) => {
-    if (node.children.length > 0) {
-        // this means it is a folder
-        return
+export const docGenController = (depgraph: DependencyGraph) => {
+  depgraph.traverseTreeWithCallback(async (node) => {
+    if (node.docGenerated) {
+      console.log(`already generated: ${node.name} path: ${node.path}`)
+      return
     }
+    console.log(`generating for  name: ${node.name} path: ${node.path}`)
 
-    console.log(`generating ${node.docPath}`)
-    const content = await readFile(node.path)
-    if (!content) return
-    const llmOutput = await docGenAgent(content)
-    createMarkdownFile(llmOutput, node.docPath)
+    node.docGenerated = true
+    // const content = await readFile(node.path)
+    // if (!content) return
+    // const llmOutput = await docGenAgent(content)
+    // createMarkdownFile(llmOutput, node.docPath)
   })
 }
