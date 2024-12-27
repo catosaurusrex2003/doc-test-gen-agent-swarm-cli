@@ -5,7 +5,7 @@ import { DirectoryTree } from '../core/DirectoryTree'
 import { docGenController } from '../controllers/docgen.controller'
 import { green, red, bold, cyan } from 'picocolors'
 import { deleteDirectory } from '../utils/dirIo'
-import { readPackageJsonMain } from '../utils/fileIo'
+import { gitignoreToRegex, readPackageJsonMain } from '../utils/fileIo'
 import { DependencyGraph } from '../core/DependencyGraph'
 import path from 'path'
 import { DependencyTree } from '../core/DependencyTree'
@@ -42,22 +42,24 @@ export async function handler() {
     process.exit(1)
   }
 
-  // THISSSS
   const entryFilePath = await readPackageJsonMain(dirPath + '/package.json')
+  const ignorePaths = await gitignoreToRegex(dirPath + '/.gitignore')
 
   // const depTree = new DependencyTree(path.join(dirPath, 'src', entryFilePath))
   // depTree.generateTree()
   // newLine(1)
   // depTree.displayTree()
-  
-  const depGraph = new DependencyGraph(path.join(dirPath, 'src', entryFilePath))
+
+  const depGraph = new DependencyGraph(path.join(dirPath, 'src', entryFilePath), undefined, ignorePaths)
   await depGraph.generateGraph()
   newLine(1)
   depGraph.displayGraph()
-  
-  
-  
-  
+  const s = depGraph.generateMermaidGraph()
+  newLine(1)
+  console.log(green('Mermaid Graph'))
+  console.log(s)
+  newLine(1)
+
   // dirTree.displayTreeDSA()
   newLine(1)
 
@@ -95,7 +97,7 @@ export async function handler() {
   //     },
   //   ],
   // })
-  
+
   // logger.log('')
   // logger.log('Please wait...')
 

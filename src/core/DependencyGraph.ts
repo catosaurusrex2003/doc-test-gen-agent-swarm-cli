@@ -28,10 +28,12 @@ export class DependencyGraph {
   root: DependencyNode
   nodeMap: Map<string, DependencyNode> = new Map()
   outDir: string
+  ignorePaths: string
 
-  constructor(rootPath: string, outDir: string = 'docs') {
+  constructor(rootPath: string, outDir: string = 'docs', ignorePaths: string = '') {
     this.root = new DependencyNode(path.basename(rootPath), rootPath)
     this.outDir = outDir
+    this.ignorePaths = ignorePaths
   }
 
   private extractImports(fileContent: string): string[] {
@@ -85,8 +87,13 @@ export class DependencyGraph {
 
           // Find first existing path
           const existingPath = possiblePaths.find((p) => fs.existsSync(p))
-
           if (existingPath) {
+            // check if should be ignored
+            if (new RegExp(this.ignorePaths).test(existingPath)) {
+              console.log(gray(`ignoring path : ${existingPath}`))
+              continue
+            }
+
             // Check if node already exists
             let importNode = this.nodeMap.get(existingPath)
             if (!importNode) {
@@ -111,60 +118,6 @@ export class DependencyGraph {
     } catch (error) {
       console.error(red(`Error reading file ${currentNode.path}: ${error}`))
     }
-  }
-
-  // Display dependency graph
-  displayGraph(): void {
-    console.log(bold(green('Dependency Graph:')))
-    this.printGraph(this.root)
-  }
-
-  private printGraph(node: DependencyNode, indent: string = '', visited: Set<string> = new Set()): void {
-    if (visited.has(node.path)) return
-    visited.add(node.path)
-
-    console.log(`${indent}${green(node.name)}`)
-
-    // Print imports
-    node.imports.forEach((imp) => {
-      console.log(`${indent}  ↳ ${cyan(path.basename(imp))}`)
-    })
-
-    // Recursively print children
-    node.children.forEach((child) => {
-      this.printGraph(child, indent + '  ', visited)
-    })
-  }
-
-  private printGraphProgress(node: DependencyNode, indent: string = '', visited: Set<string> = new Set()): void {
-    if (visited.has(node.path)) return
-    visited.add(node.path)
-
-    console.log(`${indent}${node.docGenerated ? gray(node.name) : green(node.name)}`)
-
-    // Print imports
-    node.imports.forEach((imp) => {
-      console.log(`${indent}  ↳ ${path.basename(imp)}`)
-    })
-
-    // Recursively print children
-    node.children.forEach((child) => {
-      this.printGraphProgress(child, indent + '  ', visited)
-    })
-  }
-
-  private async simulateGraphProgress(
-    node: DependencyNode,
-    pause: number = 2000,
-    indent: string = '',
-    visited: Set<string> = new Set(),
-  ): Promise<void> {
-    console.clear()
-    this.printGraphProgress(node, indent, visited)
-    const sleep = (ms: number): Promise<void> => {
-      return new Promise((resolve) => setTimeout(resolve, ms))
-    }
-    await sleep(pause)
   }
 
   // Async method to start building the graph from root
@@ -241,5 +194,93 @@ export class DependencyGraph {
         console.error(err)
       }
     }
+  }
+
+  // Display dependency graph
+  displayGraph(): void {
+    console.log(bold(green('Dependency Graph:')))
+    this.printGraph(this.root)
+  }
+
+  private printGraph(node: DependencyNode, indent: string = '', visited: Set<string> = new Set()): void {
+    if (visited.has(node.path)) return
+    visited.add(node.path)
+
+    console.log(`${indent}${green(node.name)}`)
+
+    // Print imports
+    node.imports.forEach((imp) => {
+      console.log(`${indent}  ↳ ${cyan(path.basename(imp))}`)
+    })
+
+    // Recursively print children
+    node.children.forEach((child) => {
+      this.printGraph(child, indent + '  ', visited)
+    })
+  }
+
+  private printGraphProgress(node: DependencyNode, indent: string = '', visited: Set<string> = new Set()): void {
+    if (visited.has(node.path)) return
+    visited.add(node.path)
+
+    console.log(`${indent}${node.docGenerated ? gray(node.name) : green(node.name)}`)
+
+    // Print imports
+    node.imports.forEach((imp) => {
+      console.log(`${indent}  ↳ ${path.basename(imp)}`)
+    })
+
+    // Recursively print children
+    node.children.forEach((child) => {
+      this.printGraphProgress(child, indent + '  ', visited)
+    })
+  }
+
+  private async simulateGraphProgress(
+    node: DependencyNode,
+    pause: number = 2000,
+    indent: string = '',
+    visited: Set<string> = new Set(),
+  ): Promise<void> {
+    console.clear()
+    this.printGraphProgress(node, indent, visited)
+    const sleep = (ms: number): Promise<void> => {
+      return new Promise((resolve) => setTimeout(resolve, ms))
+    }
+    await sleep(pause)
+  }
+
+  public generateMermaidGraph(): string {
+    const visited = new Set<string>()
+    const edges: string[] = []
+    const nodes: string[] = []
+
+    const traverse = (node: DependencyNode) => {
+      if (visited.has(node.path)) return
+      visited.add(node.path)
+
+      // Add node
+      const sanitizedName = node.name.replace(/[^a-zA-Z0-9]/g, '_')
+      nodes.push(`${sanitizedName}["${node.name}"]`)
+
+      // Add edges for imports
+      for (const importPath of node.imports) {
+        const importNode = this.nodeMap.get(importPath)
+        if (importNode) {
+          const importName = importNode.name.replace(/[^a-zA-Z0-9]/g, '_')
+          edges.push(`${sanitizedName} --> ${importName}`)
+          traverse(importNode)
+        }
+      }
+
+      // Traverse children
+      for (const child of node.children) {
+        traverse(child)
+      }
+    }
+
+    traverse(this.root)
+
+    return ['graph TD', ...nodes, ...edges].join('\n')
   }
 }
