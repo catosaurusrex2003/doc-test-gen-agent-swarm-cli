@@ -31,8 +31,28 @@ export const readFile = (filePath: string): Promise<string> => {
 }
 
 export const readPackageJsonMain = async (filePath: string): Promise<string> => {
-  // reads a package.json and returns the "main"
   const content = await readFile(filePath)
   const obj = JSON.parse(content)
   return obj.main as string
+}
+
+export const gitignoreToRegex = async (filePath: string): Promise<string> => {
+  const content = await readFile(filePath)
+  const dirtyArr = content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+  const regexParts = dirtyArr.map((pattern) => {
+    // Escape regex special characters except "*"
+    const escapedPattern = pattern.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&')
+    // Replace "*" with ".*" for matching anything
+    const regexPattern = escapedPattern.replace(/\*/g, '.*')
+    // Allow matching anywhere in the path
+    if (!pattern.endsWith('/')) {
+      return `${regexPattern}`
+    }
+    return `${regexPattern}.*`
+  })
+
+  return regexParts.join('|')
 }
