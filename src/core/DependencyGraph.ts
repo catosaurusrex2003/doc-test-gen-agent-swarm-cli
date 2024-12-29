@@ -11,10 +11,13 @@ class DependencyNode {
   children: DependencyNode[] = []
   visited: boolean = false
   docGenerated: boolean = false
+  docPath: string
 
-  constructor(name: string, filePath: string) {
+  constructor(name: string, filePath: string, outDir: string) {
     this.name = name
     this.path = filePath
+    const ext = path.extname(filePath)
+    this.docPath = path.join(outDir, filePath.slice(0, -ext.length) + '.md')
   }
 
   addImport(importPath: string) {
@@ -31,7 +34,7 @@ export class DependencyGraph {
   ignorePaths: string
 
   constructor(rootPath: string, outDir: string = 'docs', ignorePaths: string = '') {
-    this.root = new DependencyNode(path.basename(rootPath), rootPath)
+    this.root = new DependencyNode(path.basename(rootPath), rootPath, outDir)
     this.outDir = outDir
     this.ignorePaths = ignorePaths
   }
@@ -97,7 +100,7 @@ export class DependencyGraph {
             // Check if node already exists
             let importNode = this.nodeMap.get(existingPath)
             if (!importNode) {
-              importNode = new DependencyNode(path.basename(existingPath), existingPath)
+              importNode = new DependencyNode(path.basename(existingPath), existingPath, this.outDir)
 
               // Recursively build graph for imported file
               await this.buildGraph(importNode)

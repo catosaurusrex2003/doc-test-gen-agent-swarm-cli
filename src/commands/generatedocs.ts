@@ -36,19 +36,17 @@ export async function handler() {
     })) || '.'
 
   newLine(1)
-
   if (!fs.existsSync(dirPath)) {
     console.error(`The path "${dirPath}" does not exist.`)
     process.exit(1)
   }
 
   const entryFilePath = await readPackageJsonMain(dirPath + '/package.json')
+  console.log("entryFilePath is ", entryFilePath)
+  if(!entryFilePath) {
+    console.error("No Entry file found in package.json, add a main feild")
+  }
   const ignorePaths = await gitignoreToRegex(dirPath + '/.gitignore')
-
-  // const depTree = new DependencyTree(path.join(dirPath, 'src', entryFilePath))
-  // depTree.generateTree()
-  // newLine(1)
-  // depTree.displayTree()
 
   const depGraph = new DependencyGraph(path.join(dirPath, 'src', entryFilePath), undefined, ignorePaths)
   await depGraph.generateGraph()
@@ -60,13 +58,11 @@ export async function handler() {
   console.log(s)
   newLine(1)
 
-  // dirTree.displayTreeDSA()
   newLine(1)
 
   const confirmGenerate = await logger.prompt(
     `Do you want to generate docs for the above files ? \n` +
-      `  previously generated documentation at path ${cyan(depGraph.outDir)} will be deleted \n` +
-      red(bold('  MAKE SURE NODEMODULES IS NOT THERE.')),
+      `  previously generated documentation at path ${cyan(depGraph.outDir)} will be deleted \n`,
     {
       type: 'confirm',
     },

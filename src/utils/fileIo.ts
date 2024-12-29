@@ -30,6 +30,14 @@ export const readFile = (filePath: string): Promise<string> => {
   })
 }
 
+export const readFileSync = (filePath: string): string => {
+  try {
+    return fs.readFileSync(filePath, 'utf-8')
+  } catch (err: any) {
+    throw new Error(`Error reading file at ${filePath}: ${err.message}`)
+  }
+}
+
 export const readPackageJsonMain = async (filePath: string): Promise<string> => {
   const content = await readFile(filePath)
   const obj = JSON.parse(content)
